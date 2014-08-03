@@ -333,7 +333,7 @@ static int match_ip_literal(char const **str, char const *end, int *type) {
     return 0;
 }
 
-static int match_reg_name(char const **str, char const *end, struct liuri_components *components) {
+static void match_reg_name(char const **str, char const *end) {
     char const *i = *str;
 
     while (i < end && (is_unreserved_or_subdelim(*i) || is_pct_encoded(&i, end))) {
@@ -341,7 +341,6 @@ static int match_reg_name(char const **str, char const *end, struct liuri_compon
     }
 
     *str = i;
-    return 1;
 }
 
 static char const *match_host(char const *str, char const *end, struct liuri_components *components, int *type) {
@@ -354,7 +353,8 @@ static char const *match_host(char const *str, char const *end, struct liuri_com
         components->host.string = str;
         components->host.length = i - str;
         *type = LIURI_HOST_IPV4;
-    } else if (match_reg_name(&i, end, components)) {
+    } else {
+        match_reg_name(&i, end);
         components->host.string = str;
         components->host.length = i - str;
         *type = LIURI_HOST_NAME;
