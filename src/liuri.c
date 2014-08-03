@@ -4,35 +4,36 @@
 #define ALPHA_BIT                   (1)
 #define DIGIT_BIT                   (2)
 #define XDIGIT_BIT                  (4)
-#define UNRESERVED_AND_SUBDELIM_BIT (8)
-#define AT_SIGN_BIT                 (16)
-#define COLON_BIT                   (32)
-#define QUERY_AND_FRAGMENT_BIT      (64)
+#define SCHEME_BIT                  (8)
+#define UNRESERVED_AND_SUBDELIM_BIT (16)
+#define AT_SIGN_BIT                 (32)
+#define COLON_BIT                   (64)
+#define QUERY_AND_FRAGMENT_BIT      (128)
 
 static unsigned char const cset[256] = {
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//      !        $     &  '  (  )  *  +  ,  -  .  /
-     0, 8, 0, 0, 8, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8,64,
-//   0  1  2  3  4  5  6  7  8  9  :  ;     =     ?
-     6, 6, 6, 6, 6, 6, 6, 6, 6, 6,32, 8, 0, 8, 0,64,
-//   @  A  C  C  D  E  F  G  H  I  J  K  L  M  N  O
-    16, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//   P  Q  R  S  T  U  V  W  Z  Y  Z     \        _
-     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 8,
-//      a  b  c  d  e  f  g  h  i  j  k  l  m  n  o
-     0, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//   p  q  r  s  t  u  v  w  z  y  z           ~
-     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 8, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+//       !           $       &   '   (   )   *   +   ,   -   .   /
+     0, 16,  0,  0, 16,  0, 16, 16, 16, 16, 16, 24, 16, 24, 24,128,
+//   0   1   2   3   4   5   6   7   8   9   :   ;       =       ?
+     6,  6,  6,  6,  6,  6,  6,  6,  6,  6, 64, 16,  0, 16,  0,128,
+//   @   A   C   C   D   E   F   G   H   I   J   K   L   M   N   O
+    32,  5,  5,  5,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+//   P   Q   R   S   T   U   V   W   Z   Y   Z       \           _
+     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0, 16,
+//       a   b   c   d   e   f   g   h   i   j   k   l   m   n   o
+     0,  5,  5,  5,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+//   p   q   r   s   t   u   v   w   z   y   z               ~
+     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0, 16,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+} ;
 
 static int is_alpha(char c) {
     return cset[(unsigned char)c] & (ALPHA_BIT);
@@ -46,8 +47,8 @@ static int is_xdigit(char c) {
     return cset[(unsigned char)c] & (XDIGIT_BIT);
 }
 
-static int is_alnum(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT);
+static int is_scheme(char c) {
+    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | SCHEME_BIT);
 }
 
 static int is_unreserved_or_subdelim(char c) {
@@ -98,7 +99,7 @@ static inline char const *match_scheme(char const *str, char const *end, struct 
         for (i = i + 1; i < end; ++i) {
             char c = *i;
 
-            if (is_alnum(c) || c == '+' || c == '-' || c == '.') {
+            if (is_scheme(c)) {
                 continue;
             }
 
