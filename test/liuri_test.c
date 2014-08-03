@@ -203,6 +203,46 @@ START_TEST(uri_fragment) {
     ck_assert(match("#fragm%65nt",        0,        0,     0, 0,  0,    "",     0, "fragm%65nt"));
 } END_TEST
 
+static int host_index(char const *uri) {
+    struct liuri_components components;
+    if (liuri_parse(uri, -1, &components) && components.host.string) {
+        return components.host.string - uri;
+    } else {
+        return -1;
+    }
+}
+
+/*
+ * When a URI has the // it always has a host but it can be empty. The parser
+ * should still point to the place where the empty host is.
+ */
+START_TEST(uri_host_index) {
+    ck_assert_int_eq(-1, host_index(""));
+    ck_assert_int_eq( 2, host_index("//"));
+    ck_assert_int_eq( 7, host_index("//user@"));
+    ck_assert_int_eq(-1, host_index("path//"));
+} END_TEST
+
+static int path_index(char const *uri) {
+    struct liuri_components components;
+    if (liuri_parse(uri, -1, &components) && components.path.string) {
+        return components.path.string - uri;
+    } else {
+        return -1;
+    }
+}
+
+/*
+ * All URIs has paths but it can be empty. The parser should still point to the
+ * place where the empty path is.
+ */
+START_TEST(uri_path_index) {
+    ck_assert_int_eq(0, path_index(""));
+    ck_assert_int_eq(7, path_index("scheme:"));
+    ck_assert_int_eq(0, path_index("?query"));
+    ck_assert_int_eq(2, path_index("//"));
+} END_TEST
+
 Suite *liuri_suite(void) {
     Suite *s = suite_create("liuri");
     TCase *tc;
@@ -232,6 +272,8 @@ Suite *liuri_suite(void) {
     tcase_add_test(tc, uri_path);
     tcase_add_test(tc, uri_query);
     tcase_add_test(tc, uri_fragment);
+    tcase_add_test(tc, uri_host_index);
+    tcase_add_test(tc, uri_path_index);
     suite_add_tcase(s, tc);
 
     return s;
