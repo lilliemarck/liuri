@@ -1,16 +1,27 @@
 #include "liuri.h"
 #include <string.h>
 
-#define ALPHA_BIT                   (1)
-#define DIGIT_BIT                   (2)
-#define XDIGIT_BIT                  (4)
-#define SCHEME_BIT                  (8)
-#define UNRESERVED_AND_SUBDELIM_BIT (16)
-#define AT_SIGN_BIT                 (32)
-#define COLON_BIT                   (64)
-#define QUERY_AND_FRAGMENT_BIT      (128)
+#define ALPHA_BIT               1
+#define DIGIT_BIT               2
+#define XDIGIT_BIT              4
+#define SCHEME_BIT              8
+#define UNRESERVED_SUBDELIM_BIT 16
+#define AT_SIGN_BIT             32
+#define COLON_BIT               64
+#define SLASH_QUESTION_BIT      128
 
-static unsigned char const cset[256] = {
+#define ALPHA_SET               (ALPHA_BIT)
+#define DIGIT_SET               (DIGIT_BIT)
+#define XDIGIT_SET              (XDIGIT_BIT)
+#define SCHEME_SET              (ALPHA_BIT | DIGIT_BIT | SCHEME_BIT)
+#define UNRESERVED_SUBDELIM_SET (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT)
+#define USERINFO_SET            (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | COLON_BIT)
+#define IPVFUTURE_SET           (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | COLON_BIT)
+#define PCHAR_NC_SET            (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT)
+#define PCHAR_SET               (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT)
+#define QUERY_FRAGMENT_SET      (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT | SLASH_QUESTION_BIT)
+
+static unsigned char const sets[256] = {
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 //       !           $       &   '   (   )   *   +   ,   -   .   /
@@ -35,52 +46,39 @@ static unsigned char const cset[256] = {
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 } ;
 
-static int is_alpha(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT);
+static int in_set(unsigned char set, char c) {
+    return sets[(unsigned char)c] & set;
 }
 
-static int is_digit(char c) {
-    return cset[(unsigned char)c] & (DIGIT_BIT);
-}
-
-static int is_xdigit(char c) {
-    return cset[(unsigned char)c] & (XDIGIT_BIT);
-}
-
-static int is_scheme(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | SCHEME_BIT);
-}
-
-static int is_unreserved_or_subdelim(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | UNRESERVED_AND_SUBDELIM_BIT);
-}
-
-static int is_ipvfuture(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | UNRESERVED_AND_SUBDELIM_BIT | COLON_BIT);
-}
-
-static int is_pchar_nc(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | UNRESERVED_AND_SUBDELIM_BIT | AT_SIGN_BIT);
-}
-
-static int is_pchar(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | UNRESERVED_AND_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT);
-}
-
-static int is_query_or_fragment(char c) {
-    return cset[(unsigned char)c] & (ALPHA_BIT | DIGIT_BIT | UNRESERVED_AND_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT | QUERY_AND_FRAGMENT_BIT);
-}
-
-/*
- * Checks for a %-encoded part and skips two (not three) characters.
- */
-static int is_pct_encoded(char const **i, char const *end) {
-    if (*i + 2 < end && (*i)[0] == '%' && is_xdigit((*i)[1]) && is_xdigit((*i)[2])) {
-        *i += 2;
+static int match_set(char const **str, char const *end, unsigned char set) {
+    if (*str < end && in_set(set, **str)) {
+        ++*str;
         return 1;
     }
 
     return 0;
+}
+
+static void match_xset(char const **str, char const *end, unsigned char set) {
+    while (*str < end && in_set(set, **str)) {
+        ++*str;
+    }
+}
+
+static void match_xset_enc(char const **str, char const *end, unsigned char set) {
+    while (*str < end) {
+        if (in_set(set, **str)) {
+            ++*str;
+            continue;
+        }
+
+        if (*str + 2 < end && (*str)[0] == '%' && in_set(XDIGIT_SET, (*str)[1]) && in_set(XDIGIT_SET, (*str)[2])) {
+            *str += 3;
+            continue;
+        }
+
+        break;
+    }
 }
 
 static int match_char(char const **str, char const *end, char c) {
@@ -95,21 +93,13 @@ static int match_char(char const **str, char const *end, char c) {
 static inline char const *match_scheme(char const *str, char const *end, struct liuri_components *components) {
     char const *i = str;
 
-    if (i < end && is_alpha(*i)) {
-        for (i = i + 1; i < end; ++i) {
-            char c = *i;
+    if (match_set(&i, end, ALPHA_SET)) {
+        match_xset(&i, end, SCHEME_SET);
 
-            if (is_scheme(c)) {
-                continue;
-            }
-
-            if (c == ':') {
-                components->scheme.string = str;
-                components->scheme.length = i - str;
-                return i + 1;
-            }
-
-            break;
+        if (match_char(&i, end, ':')) {
+            components->scheme.string = str;
+            components->scheme.length = i - str - 1;
+            return i;
         }
     }
 
@@ -117,18 +107,13 @@ static inline char const *match_scheme(char const *str, char const *end, struct 
 }
 
 static char const *match_userinfo(char const *str, char const *end, struct liuri_components *components) {
-    for (char const *i = str; i < end; ++i) {
-        if (is_unreserved_or_subdelim(*i) || is_pct_encoded(&i, end)) {
-            continue;
-        }
+    char const *i = str;
+    match_xset_enc(&i, end, USERINFO_SET);
 
-        if (*i == '@') {
-            components->userinfo.string = str;
-            components->userinfo.length = i - str;
-            return i + 1;
-        }
-
-        break;
+    if (match_char(&i, end, '@')) {
+        components->userinfo.string = str;
+        components->userinfo.length = i - str - 1;
+        return i;
     }
 
     return str;
@@ -140,26 +125,22 @@ static char const *match_userinfo(char const *str, char const *end, struct liuri
 static int match_dec_octet(char const **str, char const *end) {
     char const *i = *str;
 
-    if (i < end && is_digit(*i)) {
+    if (i < end && in_set(DIGIT_SET, *i)) {
         int value = (*i++ - '0');
 
-        if (value == 0) {
-            *str = i;
-            return 1;
-        }
-
-        /*
-         * Unrolling this loop gives a bigger binary
-         */
-        for (int n = 2; n > 0; --n) {
-            if (i < end && is_digit(*i)) {
+        if (value != 0) {
+            if (i < end && in_set(DIGIT_SET, *i)) {
                 value = 10 * value + (*i++ - '0');
-            }
-        }
 
-        if (value > 255) {
-            *str = *str + 2;
-            return 1;
+                if (i < end && in_set(DIGIT_SET, *i)) {
+                    value = 10 * value + (*i++ - '0');
+                }
+            }
+
+            if (value > 255) {
+                *str += 2;
+                return 1;
+            }
         }
 
         *str = i;
@@ -198,17 +179,10 @@ static int match_ipv4_address(char const **str, char const *end) {
 static int match_h16(char const **str, char const *end) {
     char const *i = *str;
 
-    if (i < end && is_xdigit(*i)) {
-        ++i;
-
-        if (i < end && is_xdigit(*i)) {
-            ++i;
-
-            if (i < end && is_xdigit(*i)) {
-                ++i;
-
-                if (i < end && is_xdigit(*i)) {
-                    ++i;
+    if (match_set(&i, end, XDIGIT_SET)) {
+        if (match_set(&i, end, XDIGIT_SET)) {
+            if (match_set(&i, end, XDIGIT_SET)) {
+                if (match_set(&i, end, XDIGIT_SET)) {
                 }
             }
         }
@@ -286,21 +260,12 @@ static int match_ipvfuture(char const **str, char const *end) {
     char const *i = *str;
 
     if (match_char(&i, end, 'v')) {
-        if (i < end && is_xdigit(*i)) {
-            for (i = i + 1; i < end; ++i) {
-                if (!is_xdigit(*i)) {
-                    break;
-                }
-            }
+        if (match_set(&i, end, XDIGIT_SET)) {
+            match_xset(&i, end, XDIGIT_SET);
 
             if (match_char(&i, end, '.')) {
-                if (i < end && (is_ipvfuture(*i))) {
-                    for (i = i + 1; i < end; ++i) {
-                        if (!(is_ipvfuture(*i))) {
-                            break;
-                        }
-                    }
-
+                if (match_set(&i, end, IPVFUTURE_SET)) {
+                    match_xset(&i, end, IPVFUTURE_SET);
                     *str = i;
                     return 1;
                 }
@@ -333,44 +298,26 @@ static int match_ip_literal(char const **str, char const *end, int *type) {
     return 0;
 }
 
-static void match_reg_name(char const **str, char const *end) {
-    char const *i = *str;
-
-    while (i < end && (is_unreserved_or_subdelim(*i) || is_pct_encoded(&i, end))) {
-        ++i;
-    }
-
-    *str = i;
-}
-
 static char const *match_host(char const *str, char const *end, struct liuri_components *components, int *type) {
     char const *i = str;
 
     if (match_ip_literal(&i, end, type)) {
-        components->host.string = str;
-        components->host.length = i - str;
     } else if (match_ipv4_address(&i, end)) {
-        components->host.string = str;
-        components->host.length = i - str;
         *type = LIURI_HOST_IPV4;
     } else {
-        match_reg_name(&i, end);
-        components->host.string = str;
-        components->host.length = i - str;
+        match_xset_enc(&i, end, UNRESERVED_SUBDELIM_SET);
         *type = LIURI_HOST_NAME;
     }
 
+    components->host.string = str;
+    components->host.length = i - str;
     return i;
 }
 
 static char const *match_port(char const *str, char const *end, struct liuri_components *components) {
     if (match_char(&str, end, ':')) {
         char const *i = str;
-
-        while (i < end && is_digit((unsigned char)*i)) {
-            ++i;
-        }
-
+        match_xset(&i, end, DIGIT_SET);
         components->port.string = str;
         components->port.length = i - str;
         return i;
@@ -397,44 +344,12 @@ static char const *match_authority(char const *str, char const *end, struct liur
     return str;
 }
 
-static int match_pchar(char const **str, char const *end) {
-    char const *i = *str;
-
-    if (i < end && (is_pchar(*i) || is_pct_encoded(&i, end))) {
-        *str = i + 1;
-        return 1;
-    }
-
-    return 0;
-}
-
-static int match_pchar_nc(char const **str, char const *end) {
-    char const *i = *str;
-
-    if (i < end && (is_pchar_nc(*i) || is_pct_encoded(&i, end))) {
-        *str = i + 1;
-        return 1;
-    }
-
-    return 0;
-}
-
-static void match_segment(char const **str, char const *end) {
-    while (match_pchar(str, end)) {
-    }
-}
-
-static void match_segment_nc(char const **str, char const *end) {
-    while (match_pchar_nc(str, end)) {
-    }
-}
-
 /*
  * Matches an absolute path that may contain consecutive '/' anywhere.
  */
 static void match_path_absolute(char const **str, char const *end) {
     while (match_char(str, end, '/')) {
-        match_segment(str, end);
+        match_xset_enc(str, end, PCHAR_SET);
     }
 }
 
@@ -444,10 +359,10 @@ static char const *match_path(char const *str, char const *end, struct liuri_com
     if (components->authority.string) {
         match_path_absolute(&i, end);
     } else if (components->scheme.string) {
-        match_segment(&i, end);
+        match_xset_enc(&i, end, PCHAR_SET);
         match_path_absolute(&i, end);
     } else {
-        match_segment_nc(&i, end);
+        match_xset_enc(&i, end, PCHAR_NC_SET);
         match_path_absolute(&i, end);
     }
 
@@ -456,24 +371,10 @@ static char const *match_path(char const *str, char const *end, struct liuri_com
     return i;
 }
 
-static int match_fragment_or_query(char const **str, char const *end) {
-    char const *i = *str;
-
-    if (i < end && (is_query_or_fragment(*i) || is_pct_encoded(&i, end))) {
-        *str = i + 1;
-        return 1;
-    }
-
-    return 0;
-}
-
 static char const *match_query(char const *str, char const *end, struct liuri_components *components) {
-    if (str < end && str[0] == '?') {
-        char const *i = ++str;
-
-        while (match_fragment_or_query(&i, end)) {
-        }
-
+    if (match_char(&str, end, '?')) {
+        char const *i = str;
+        match_xset_enc(&i, end, QUERY_FRAGMENT_SET);
         components->query.string = str;
         components->query.length = i - str;
         return i;
@@ -483,12 +384,9 @@ static char const *match_query(char const *str, char const *end, struct liuri_co
 }
 
 static char const *match_fragment(char const *str, char const *end, struct liuri_components *components) {
-    if (str < end && str[0] == '#') {
-        char const *i = ++str;
-
-        while (match_fragment_or_query(&i, end)) {
-        }
-
+    if (match_char(&str, end, '#')) {
+        char const *i = str;
+        match_xset_enc(&i, end, QUERY_FRAGMENT_SET);
         components->fragment.string = str;
         components->fragment.length = i - str;
         return i;
