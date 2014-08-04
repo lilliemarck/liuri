@@ -4,22 +4,23 @@
 #define ALPHA_BIT               1
 #define DIGIT_BIT               2
 #define XDIGIT_BIT              4
-#define SCHEME_BIT              8
+#define PLUS_MINUS_DOT_BIT      8
 #define UNRESERVED_SUBDELIM_BIT 16
 #define AT_SIGN_BIT             32
 #define COLON_BIT               64
 #define SLASH_QUESTION_BIT      128
 
-#define ALPHA_SET               (ALPHA_BIT)
-#define DIGIT_SET               (DIGIT_BIT)
-#define XDIGIT_SET              (XDIGIT_BIT)
-#define SCHEME_SET              (ALPHA_BIT | DIGIT_BIT | SCHEME_BIT)
-#define UNRESERVED_SUBDELIM_SET (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT)
-#define USERINFO_SET            (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | COLON_BIT)
-#define IPVFUTURE_SET           (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | COLON_BIT)
-#define PCHAR_NC_SET            (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT)
-#define PCHAR_SET               (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT)
-#define QUERY_FRAGMENT_SET      (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT | SLASH_QUESTION_BIT)
+#define ALPHA_SET          (ALPHA_BIT)
+#define DIGIT_SET          (DIGIT_BIT)
+#define XDIGIT_SET         (XDIGIT_BIT)
+#define SCHEME_SET         (ALPHA_BIT | DIGIT_BIT | PLUS_MINUS_DOT_BIT)
+#define REG_NAME_SET       (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT)
+#define HOST_SET           (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT)
+#define USERINFO_SET       (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | COLON_BIT)
+#define IPVFUTURE_SET      (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | COLON_BIT)
+#define PATH_NC_SET        (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT)
+#define PATH_SET           (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT)
+#define QUERY_FRAGMENT_SET (ALPHA_BIT | DIGIT_BIT | UNRESERVED_SUBDELIM_BIT | AT_SIGN_BIT | COLON_BIT | SLASH_QUESTION_BIT)
 
 static unsigned char const sets[256] = {
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -305,7 +306,7 @@ static char const *match_host(char const *str, char const *end, struct liuri_com
     } else if (match_ipv4_address(&i, end)) {
         *type = LIURI_HOST_IPV4;
     } else {
-        match_xset_enc(&i, end, UNRESERVED_SUBDELIM_SET);
+        match_xset_enc(&i, end, REG_NAME_SET);
         *type = LIURI_HOST_NAME;
     }
 
@@ -349,7 +350,7 @@ static char const *match_authority(char const *str, char const *end, struct liur
  */
 static void match_path_absolute(char const **str, char const *end) {
     while (match_char(str, end, '/')) {
-        match_xset_enc(str, end, PCHAR_SET);
+        match_xset_enc(str, end, PATH_SET);
     }
 }
 
@@ -359,10 +360,10 @@ static char const *match_path(char const *str, char const *end, struct liuri_com
     if (components->authority.string) {
         match_path_absolute(&i, end);
     } else if (components->scheme.string) {
-        match_xset_enc(&i, end, PCHAR_SET);
+        match_xset_enc(&i, end, PATH_SET);
         match_path_absolute(&i, end);
     } else {
-        match_xset_enc(&i, end, PCHAR_NC_SET);
+        match_xset_enc(&i, end, PATH_NC_SET);
         match_path_absolute(&i, end);
     }
 
