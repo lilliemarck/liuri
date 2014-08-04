@@ -193,7 +193,7 @@ static int match_ipv4_address(char const **str, char const *end) {
 }
 
 /*
- * Matches zero to four hexadecimal digits.
+ * Matches one to four hexadecimal digits.
  */
 static int match_h16(char const **str, char const *end) {
     char const *i = *str;
