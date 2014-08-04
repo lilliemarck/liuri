@@ -28,13 +28,13 @@ Parses 'uri' into its basic components and places them in the structure pointed 
       struct liuri_match fragment;
   }:
 
-If a component is matched the 'string' field is set to a pointer into the 'uri' string and 'length' is set to the number of matching characters. If a match is not found, 'string' is set to NULL and 'length' is set to 0.
+If a component is matched, 'string' is set to a pointer into the 'uri' string and 'length' is set to the number of matching characters. If a match is not found, 'string' is set to NULL and 'length' is set to 0.
 
 Only components that are strictly RFC 3986 conforming will be matched but it is possible that the parser stops before 'size' characters has been parsed if it encounters a syntax error. Check the return value to find out if all of 'uri' was successfully parsed.
 
 If the 'scheme' is non-NULL, the 'uri' is a proper URI. If 'scheme' is NULL then 'uri' is technically a relative reference.
 
-After a URI has been parsed, even if 0 characters were consumed, the 'host' component will be set to a pointer into 'uri'.
+After a URI has been parsed, even if 0 characters were consumed, the 'host' component will be set to a non-NULL value, unless 'uri' itself was NULL.
 
 If 'authority' is non-NULL then 'host' is also non-NULL.
 
