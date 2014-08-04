@@ -371,24 +371,12 @@ static char const *match_path(char const *str, char const *end, struct liuri_com
     return i;
 }
 
-static char const *match_query(char const *str, char const *end, struct liuri_components *components) {
-    if (match_char(&str, end, '?')) {
+static char const *match_query_fragment(char const *str, char const *end, char delim, struct liuri_match *match) {
+    if (match_char(&str, end, delim)) {
         char const *i = str;
         match_xset_enc(&i, end, QUERY_FRAGMENT_SET);
-        components->query.string = str;
-        components->query.length = i - str;
-        return i;
-    }
-
-    return str;
-}
-
-static char const *match_fragment(char const *str, char const *end, struct liuri_components *components) {
-    if (match_char(&str, end, '#')) {
-        char const *i = str;
-        match_xset_enc(&i, end, QUERY_FRAGMENT_SET);
-        components->fragment.string = str;
-        components->fragment.length = i - str;
+        match->string = str;
+        match->length = i - str;
         return i;
     }
 
@@ -422,7 +410,7 @@ int liuri_parse(char const *uri, int size, struct liuri_components *components) 
     uri = match_scheme(uri, end, components);
     uri = match_authority(uri, end, components);
     uri = match_path(uri, end, components);
-    uri = match_query(uri, end, components);
-    uri = match_fragment(uri, end, components);
+    uri = match_query_fragment(uri, end, '?', &components->query);
+    uri = match_query_fragment(uri, end, '#', &components->fragment);
     return uri == end;
 }
