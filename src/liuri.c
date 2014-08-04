@@ -383,7 +383,7 @@ static char const *match_query_fragment(char const *str, char const *end, char d
     return str;
 }
 
-int liuri_address_type(char const *host, int size) {
+int liuri_host_type(char const *host, int size) {
     if (size == -1) {
         size = strlen(host);
     }

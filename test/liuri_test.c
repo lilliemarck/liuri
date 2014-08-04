@@ -5,65 +5,65 @@
 #include <stdio.h>
 
 START_TEST(valid_ipv4) {
-    ck_assert_int_eq(LIURI_HOST_IPV4, liuri_address_type("127.0.0.1", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV4, liuri_address_type("0.0.0.0", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV4, liuri_address_type("255.255.255.255", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV4, liuri_host_type("127.0.0.1", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV4, liuri_host_type("0.0.0.0", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV4, liuri_host_type("255.255.255.255", -1));
 } END_TEST
 
 START_TEST(invalid_ipv4) {
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("0127.0.0.1", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("127.00.0.1", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("127.0.0.01", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("256.0.0.1", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("127.0.0.-1", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("127.0.0", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("1.2.3.4.5", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_address_type("name", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("0127.0.0.1", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("127.00.0.1", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("127.0.0.01", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("256.0.0.1", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("127.0.0.-1", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("127.0.0", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("1.2.3.4.5", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV4, liuri_host_type("name", -1));
 } END_TEST
 
 START_TEST(valid_ipv6) {
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[0:0:0:0:0:0:0:0]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[00:000:0000:F:0F:0FF:0FFF:FFFF]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[::]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[::0]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[::0:0:0:0:0:0:0]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[0::0]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[0:0:0:0:0:0:0::]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[0:0:0:0:0:0:0:0]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[00:000:0000:F:0F:0FF:0FFF:FFFF]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[::]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[::0]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[::0:0:0:0:0:0:0]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[0::0]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[0:0:0:0:0:0:0::]", -1));
 } END_TEST
 
 START_TEST(valid_ipv6_with_ipv4) {
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[0:0:0:0:0:0:127.0.0.1]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[::0:0:0:0:0:127.0.0.1]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[::127.0.0.1]", -1));
-    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_address_type("[0::127.0.0.1]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[0:0:0:0:0:0:127.0.0.1]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[::0:0:0:0:0:127.0.0.1]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[::127.0.0.1]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPV6, liuri_host_type("[0::127.0.0.1]", -1));
 } END_TEST
 
 START_TEST(invalid_ipv6) {
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[:0:0:0:0:0:0:0:0]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0:0:0:0:0:0:0.0:]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[::0:0:0:0:0:0:0:0]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0:0:0:0:0:0:0:127.0.0.1]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0:0:0:0:0:0:0:127.0]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[::0:0:0:0:0:127.X]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[::0::]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[::0:]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[:0::]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0:]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[127.0.0.1]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[127.]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[::127.]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0X]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_address_type("[0", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[:0:0:0:0:0:0:0:0]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0:0:0:0:0:0:0.0:]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[::0:0:0:0:0:0:0:0]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0:0:0:0:0:0:0:127.0.0.1]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0:0:0:0:0:0:0:127.0]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[::0:0:0:0:0:127.X]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[::0::]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[::0:]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[:0::]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0:]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[127.0.0.1]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[127.]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[::127.]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0X]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPV6, liuri_host_type("[0", -1));
 } END_TEST
 
 START_TEST(valid_ipvfuture) {
-    ck_assert_int_eq(LIURI_HOST_IPVFUTURE, liuri_address_type("[vff.address:132]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPVFUTURE, liuri_address_type("[v0.]", -1));
-    ck_assert_int_ne(LIURI_HOST_IPVFUTURE, liuri_address_type("[v.]", -1));
+    ck_assert_int_eq(LIURI_HOST_IPVFUTURE, liuri_host_type("[vff.address:132]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPVFUTURE, liuri_host_type("[v0.]", -1));
+    ck_assert_int_ne(LIURI_HOST_IPVFUTURE, liuri_host_type("[v.]", -1));
 } END_TEST
 
 static int compare(char const *string, struct liuri_match const *match) {

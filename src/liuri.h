@@ -22,5 +22,5 @@ struct liuri_components {
     struct liuri_match fragment;
 };
 
-int liuri_address_type(char const *host, int size);
+int liuri_host_type(char const *host, int size);
 int liuri_parse(char const *uri, int size, struct liuri_components *components);
