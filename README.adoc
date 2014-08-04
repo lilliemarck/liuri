@@ -1,6 +1,6 @@
 LIURI_PARSE
 -----------
-liuri_parse - A small validating URI (RFC 3986) parser
+liuri_parse -- A small validating URI (RFC 3986) parser
 
 SYNOPSIS
 --------
