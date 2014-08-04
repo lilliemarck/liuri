@@ -4,28 +4,28 @@ liuri_parse - A small validating URI (RFC 3986) parser
 
 SYNOPSIS
 --------
-  #include <liuri.h>
-
-  int liuri_parse(char const *uri, int size, struct liuri_components *components);
+ #include <liuri.h>
+ 
+ int liuri_parse(char const *uri, int size, struct liuri_components *components);
 
 DESCRIPTION
 -----------
 Parses 'uri' into its basic components and places them in the structure pointed to by 'components'. 'components' is not allowed to be NULL. Parses 'size' number of characters or until a null terminator if 'size' is -1.
 
   struct liuri_match {
-	  char const *string;
-	  int size;  
+      char const *string;
+      int length;  
   };
 
   struct liuri_components {
-    struct liuri_match scheme;
-    struct liuri_match authority;
-    struct liuri_match userinfo;
-    struct liuri_match host;
-    struct liuri_match port;
-    struct liuri_match path;
-    struct liuri_match query;
-    struct liuri_match fragment;
+      struct liuri_match scheme;
+      struct liuri_match authority;
+      struct liuri_match userinfo;
+      struct liuri_match host;
+      struct liuri_match port;
+      struct liuri_match path;
+      struct liuri_match query;
+      struct liuri_match fragment;
   }:
 
 If a component is matched the 'string' field is set to a pointer into the 'uri' string and 'length' is set to the number of matching characters. If a match is not found, 'string' is set to NULL and 'length' is set to 0.
