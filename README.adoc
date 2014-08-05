@@ -1,47 +1,51 @@
-LIURI_PARSE
------------
-liuri_parse -- A small validating URI (RFC 3986) parser
+== NAME
 
-SYNOPSIS
---------
- #include <liuri.h>
- 
- int liuri_parse(char const *uri, int size, struct liuri_components *components);
+liuri_parse - A small validating URI (RFC 3986) parser
 
-DESCRIPTION
------------
+== SYNOPSIS
+
+[source,c]
+----
+#include <liuri.h>
+
+int liuri_parse(char const *uri, int size, struct liuri_components *components);
+----
+
+== DESCRIPTION
+
 Parses 'uri' into its basic components and places them in the structure pointed to by 'components'. 'components' is not allowed to be NULL. Parses 'size' number of characters or until a null terminator if 'size' is -1.
 
-  struct liuri_match {
-      char const *string;
-      int length;  
-  };
+[source,c]
+----
+struct liuri_match {
+    char const *string;
+    int length;  
+};
 
-  struct liuri_components {
-      struct liuri_match scheme;
-      struct liuri_match authority;
-      struct liuri_match userinfo;
-      struct liuri_match host;
-      struct liuri_match port;
-      struct liuri_match path;
-      struct liuri_match query;
-      struct liuri_match fragment;
-  }:
+struct liuri_components {
+    struct liuri_match scheme;
+    struct liuri_match authority;
+    struct liuri_match userinfo;
+    struct liuri_match host;
+    struct liuri_match port;
+    struct liuri_match path;
+    struct liuri_match query;
+    struct liuri_match fragment;
+}:
+----
 
 If a component is matched, 'string' is set to a pointer into the 'uri' string and 'length' is set to the number of matching characters. If a match is not found, 'string' is set to NULL and 'length' is set to 0.
 
 Only components that are strictly RFC 3986 conforming will be matched but it is possible that the parser stops before 'size' characters has been parsed if it encounters a syntax error. Check the return value to find out if all of 'uri' was successfully parsed.
 
-If the 'scheme' is non-NULL, the 'uri' is a proper URI. If 'scheme' is NULL then 'uri' is technically a relative reference.
+If the 'scheme' is non-NULL, the 'uri' is a proper URI otherwise 'uri' is technically a relative reference.
 
 After a URI has been parsed, even if 0 characters were consumed, the 'host' component will be set to a non-NULL value, unless 'uri' itself was NULL.
-
-If 'authority' is non-NULL then 'host' is also non-NULL.
 
 All components that are matched will be stored without the delimiting character. I.e. scheme without ':', authority without '//', userinfo without '@', port without ':', query without '?' and fragment without '#'.
 
 All of the components except scheme may match an empty string.
 
-RETURN VALUES
--------------
+== RETURN VALUES
+
 If all of 'uri' was strictly conforming to RFC 3986 and could be parsed into components, returns 1. If only part of 'uri' could be parsed, returns 0.
