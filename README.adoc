@@ -1,3 +1,5 @@
+= liuri_parse(3)
+
 == NAME
 
 liuri_parse - A small validating URI (RFC 3986) parser
